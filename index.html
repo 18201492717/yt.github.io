@@ -16,23 +16,26 @@
     <!-- css -->
     <link href="public/images/2.png" rel="icon" />
     <link rel="stylesheet" href="public/css/reset.css">
-    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>  
-    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=ZdSV0nq2GuXpD7FkXZR8uihmqzQKsAno"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript"
+        src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=ZdSV0nq2GuXpD7FkXZR8uihmqzQKsAno"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.3.0/layer.js"></script>
     <script src="public/js/info.js"></script>
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-box-sizing: border-box;
         }
-        .input-search{
+
+        .input-search {
             position: relative;
             margin: 100px auto;
             width: 200px;
         }
-        input{
+
+        input {
             width: 200px;
             height: 30px;
             padding-left: 10px;
@@ -43,10 +46,11 @@
             overflow: hidden;
             white-space: nowrap;
             outline: none;
-            -webkit-appearance:none;
+            -webkit-appearance: none;
             appearance: none;
         }
-        ul{
+
+        ul {
             display: none;
             position: absolute;
             top: 29px;
@@ -57,7 +61,8 @@
             z-index: 1;
             font-size: 0;
         }
-        ul li{
+
+        ul li {
             position: relative;
             padding-left: 10px;
             width: 100%;
@@ -72,7 +77,8 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        ul li:hover{
+
+        ul li:hover {
             color: #fff;
             background-color: #1c9dff;
         }
@@ -87,17 +93,24 @@
     <div style="width: 80%;height: 500px" id="allmap">
     </div>
     <script>
-        $(function(){
+        init()
+
+        function init() {
+            var map = new BMapGL.Map("allmap");    // 创建Map实例
+            map.centerAndZoom(new BMapGL.Point(116.404, 39.915), 11);  // 初始化地图,设置中心点坐标和地图级别
+            map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+        }
+        $(function () {
             /**按下键盘时搜索*/
-            $("body").undelegate("input", "keyup").delegate("input", "keyup", function() {
+            $("body").undelegate("input", "keyup").delegate("input", "keyup", function () {
                 var name = $(this).val().replace(/\s+/g, "");
-                if(name.length>0){
-                    var resultArray = getArrayByName(name,jsonArr,259);
-                    if(resultArray.length<1){
+                if (name.length > 0) {
+                    var resultArray = getArrayByName(name, jsonArr, 259);
+                    if (resultArray.length < 1) {
                         $(this).next("ul").hide();
-                    }else{
+                    } else {
                         var arrNew = []
-                        for(var i=0;i<resultArray.length;i++){
+                        for (var i = 0; i < resultArray.length; i++) {
                             arrNew.push(resultArray[i])
                             // html += "<li>"+resultArray[i].name+"</li>";
                         }
@@ -107,69 +120,69 @@
                 }
             })
             /**下拉列表展开时点击li的事件,为输入框赋值*/
-            $(".input-search").on("click","ul li",function(){
+            $(".input-search").on("click", "ul li", function () {
                 $(this).parent("ul").siblings("input").val($(this).text());
                 $(this).parent("ul").hide();
             });
         })
- 
+
         var jsonArr = 全部
-    /**
-     * 根据字符串模糊搜索返回符合条件的数据
-     * name   搜索字符串
-     * array  检索json数组
-     * length 匹配结果最大长度
-     */
-    function getArrayByName(name,array,length){
-        if(array.length < 1){
-            return;
-        }
-        var result = [];
-        for (var key in array) {
-            if (checkStrContain(array[key].name,name) && result.length<length) {
-                result.push(array[key])
+        /**
+         * 根据字符串模糊搜索返回符合条件的数据
+         * name   搜索字符串
+         * array  检索json数组
+         * length 匹配结果最大长度
+         */
+        function getArrayByName(name, array, length) {
+            if (array.length < 1) {
+                return;
             }
+            var result = [];
+            for (var key in array) {
+                if (checkStrContain(array[key].name, name) && result.length < length) {
+                    result.push(array[key])
+                }
+            }
+            return result
         }
-        return result
-    }
-    /**检查一个字符串是否包含在另一个字符串里,并且首字符相同
-     * i:计算机科学与技术
-     * j:计科
-     * 返回true
-     * */
-    function checkStrContain(i, j) {
-        if(!i || !j){
-            return false;
-        }
-        if(i.charAt(0) != j.charAt(0)){
-            return false;
-        }
-        i = i.substr(1,i.length-1);
-        j = j.substr(1,j.length-1);
-        var a;
-        var b;
-        if (i.length > j.length) {
-            a = i;
-            b = j;
-        } else {
-            a = j;
-            b = i;
-        }
-        var count = 0;
-        for (var bi = 0; bi < b.length; bi++) {
-            var bArr = b.split("");
-            if (a.indexOf(bArr[bi]) != -1) {
-                count++;
+        /**检查一个字符串是否包含在另一个字符串里,并且首字符相同
+         * i:计算机科学与技术
+         * j:计科
+         * 返回true
+         * */
+        function checkStrContain(i, j) {
+            if (!i || !j) {
+                return false;
+            }
+            if (i.charAt(0) != j.charAt(0)) {
+                return false;
+            }
+            i = i.substr(1, i.length - 1);
+            j = j.substr(1, j.length - 1);
+            var a;
+            var b;
+            if (i.length > j.length) {
+                a = i;
+                b = j;
             } else {
-                break;
+                a = j;
+                b = i;
+            }
+            var count = 0;
+            for (var bi = 0; bi < b.length; bi++) {
+                var bArr = b.split("");
+                if (a.indexOf(bArr[bi]) != -1) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (b.length == count) {
+                return true;
+            } else {
+                return false;
             }
         }
-        if (b.length == count) {
-            return true;
-        } else {
-            return false;
-        }
-    }
     </script>
 </body>
 
