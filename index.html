@@ -115,11 +115,17 @@
             background-color: #7100fe;
             border: 1px solid #0ee2e2;
             color: #fff;
+            cursor: pointer;
         }
 
         .select-box {
+            cursor: pointer;
             position: relative;
             margin: 0 5px;
+        }
+
+        .select-box input{
+            cursor: pointer;
         }
 
         .select-box img {
@@ -207,7 +213,8 @@
                 if (name.length > 0) {
                     var resultArray = getArrayByName(name, jsonArr, 259);
                     if (resultArray.length < 1) {
-                        layer.msg('暂无信息，请换个关键词')
+                        layer.msg('请完善搜索信息～')
+                        return false
                     } else {
                         var arrNew = []
                         for (var i = 0; i < resultArray.length; i++) {
