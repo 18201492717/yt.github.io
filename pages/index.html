@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>测试</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no">
+    <meta name="keywords" content="鱼台县" />
+    <meta name="description" content="鱼台县" />
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+    <!-- css -->
+    <link href="../public/images/2.png" rel="icon" />
+    <link rel="stylesheet" href="../public/css/reset.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript"
+        src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=ZdSV0nq2GuXpD7FkXZR8uihmqzQKsAno"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.3.0/layer.js"></script>
+    <script src="../public/js/info.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+        }
+
+        section {
+            z-index: 999;
+            position: absolute;
+            right: 50px;
+            top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+            padding-right: 20px;
+            width: 50%;
+        }
+
+        .input-search {
+            width: 200px;
+        }
+
+        select {
+            margin: 0 10px;
+            width: 200px;
+            height: 30px;
+        }
+
+        input {
+            width: 200px;
+            height: 30px;
+            padding-left: 10px;
+            padding-right: 10px;
+            background-color: #7100fe;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            border: 1px solid #0ee2e2;
+            color: #fff;
+        }
+
+        input::placeholder {
+            color: antiquewhite;
+        }
+
+        ul {
+            display: none;
+            position: absolute;
+            top: 29px;
+            width: 200px;
+            border: solid 1px #62a6da;
+            max-height: 340px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 1;
+            font-size: 0;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 10px;
+            width: 200px;
+            height: 34px;
+            line-height: 34px;
+            font-size: 14px;
+            color: #454545;
+            text-align: left;
+            background-color: #fff;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        ul li:hover {
+            color: #fff;
+            background-color: #1c9dff;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 30px;
+            background-color: #7100fe;
+            border: 1px solid #0ee2e2;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .select-box {
+            cursor: pointer;
+            position: relative;
+            margin: 0 5px;
+        }
+
+        .select-box input {
+            cursor: pointer;
+        }
+
+        .select-box img {
+            position: absolute;
+            right: 5px;
+            top: 6px;
+            width: 18px;
+            height: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <section>
+        <div class="input-search">
+            <input class="input" type="text" placeholder="请输入门店名称">
+            <ul></ul>
+        </div>
+        <div class="input-search select-box">
+            <img src="https://soupublic.oss-cn-beijing.aliyuncs.com/web/h5/six-eighteen/icon_bottom.png" alt="">
+            <input type="text" value="" class="select" readonly placeholder="请选择乡镇区域">
+            <ul>
+                <li value="全部">全部</li>
+                <li value="张黄">张黄</li>
+                <li value="老砦">老砦</li>
+                <li value="谷亭">谷亭</li>
+                <li value="唐马">唐马</li>
+                <li value="王鲁镇">王鲁镇</li>
+                <li value="兽药">兽药</li>
+                <li value="李阁">李阁</li>
+                <li value="清河">清河</li>
+                <li value="罗屯">罗屯</li>
+                <li value="王庙镇">王庙镇</li>
+                <li value="滨湖">滨湖</li>
+                <li value="鱼城">鱼城</li>
+            </ul>
+        </div>
+        <div class="btn">搜索</div>
+    </section>
+    <div style="width: 100%;height: 800px" id="allmap">
+    </div>
+    <script>
+
+        // 定义一些常量
+        const x_PI = 3.14159265358979324 * 3000.0 / 180.0
+        const PI = 3.1415926535897932384626
+        const a = 6378245.0
+        const ee = 0.00669342162296594323
+
+        /**
+         * 百度坐标系 (BD-09) 与 火星坐标系 (GCJ-02)的转换 / 即百度转谷歌、高德
+         * @param { Number } bd_lon
+         * @param { Number } bd_lat
+         */
+        function bd09togcj02(bd_lon, bd_lat) {
+            var x_pi = 3.14159265358979324 * 3000.0 / 180.0
+            var x = bd_lon - 0.0065
+            var y = bd_lat - 0.006
+            var z = Math.sqrt(x * x + y * y) - 0.00002 * Math.sin(y * x_pi)
+            var theta = Math.atan2(y, x) - 0.000003 * Math.cos(x * x_pi)
+            var gg_lng = z * Math.cos(theta)
+            var gg_lat = z * Math.sin(theta)
+            return [gg_lng, gg_lat]
+        }
+
+        /**
+         * 火星坐标系 (GCJ-02) 与百度坐标系 (BD-09) 的转换 / 即谷歌、高德 转 百度
+         * @param { Number } lng
+         * @param { Number } lat
+         */
+        function gcj02tobd09(lng, lat) {
+            var z = Math.sqrt(lng * lng + lat * lat) + 0.00002 * Math.sin(lat * x_PI)
+            var theta = Math.atan2(lat, lng) + 0.000003 * Math.cos(lng * x_PI)
+            var bd_lng = z * Math.cos(theta) + 0.0065
+            var bd_lat = z * Math.sin(theta) + 0.006
+            return [bd_lng, bd_lat]
+        }
+
+        /**
+         * WGS84坐标系转火星坐标系GCj02 / 即WGS84 转谷歌、高德
+         * @param { Number } lng 
+         * @param { Number } lat 
+         */
+        function wgs84togcj02(lng, lat) {
+            if (outOfChina(lng, lat)) {
+                return [lng, lat]
+            }
+            else {
+                var dlat = transformlat(lng - 105.0, lat - 35.0)
+                var dlng = transformlng(lng - 105.0, lat - 35.0)
+                var radlat = lat / 180.0 * PI
+                var magic = Math.sin(radlat)
+                magic = 1 - ee * magic * magic
+                var sqrtmagic = Math.sqrt(magic)
+                dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * PI)
+                dlng = (dlng * 180.0) / (a / sqrtmagic * Math.cos(radlat) * PI)
+                const mglat = lat + dlat
+                const mglng = lng + dlng
+                return [mglng, mglat]
+            }
+        }
+
+        /**
+         * GCJ02（火星坐标系） 转换为 WGS84 / 即谷歌高德转WGS84
+         * @param { Number } lng 
+         * @param { Number } lat 
+         */
+        function gcj02towgs84(lng, lat) {
+            if (outOfChina(lng, lat)) {
+                return [lng, lat]
+            }
+            else {
+                var dlat = transformlat(lng - 105.0, lat - 35.0)
+                var dlng = transformlng(lng - 105.0, lat - 35.0)
+                var radlat = lat / 180.0 * PI
+                var magic = Math.sin(radlat)
+                magic = 1 - ee * magic * magic
+                var sqrtmagic = Math.sqrt(magic)
+                dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * PI)
+                dlng = (dlng * 180.0) / (a / sqrtmagic * Math.cos(radlat) * PI)
+                const mglat = lat + dlat
+                const mglng = lng + dlng
+                return [lng * 2 - mglng, lat * 2 - mglat]
+            }
+        }
+
+        /**
+         * 百度坐标系转wgs84坐标系
+         * @param {*} lng 
+         * @param {*} lat 
+         */
+        function bd09towgs84(lng, lat) {
+            // 百度坐标系先转为火星坐标系
+            const gcj02 = bd09togcj02(lng, lat)
+            // 火星坐标系转wgs84坐标系
+            const result = gcj02towgs84(gcj02[0], gcj02[1])
+            return result
+        }
+
+        /**
+         * wgs84坐标系转百度坐标系
+         * @param {*} lng 
+         * @param {*} lat 
+         */
+        function wgs84tobd09(lng, lat) {
+            // wgs84先转为火星坐标系
+            const gcj02 = wgs84togcj02(lng, lat)
+            // 火星坐标系转百度坐标系
+            const result = gcj02tobd09(gcj02[0], gcj02[1])
+            return result
+        }
+
+        /**
+         * 经度转换
+         * @param { Number } lng 
+         * @param { Number } lat 
+         */
+        function transformlat(lng, lat) {
+            var ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng))
+            ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0
+            ret += (20.0 * Math.sin(lat * PI) + 40.0 * Math.sin(lat / 3.0 * PI)) * 2.0 / 3.0
+            ret += (160.0 * Math.sin(lat / 12.0 * PI) + 320 * Math.sin(lat * PI / 30.0)) * 2.0 / 3.0
+            return ret
+        }
+
+        /**
+         * 纬度转换
+         * @param { Number } lng 
+         * @param { Number } lat 
+         */
+        function transformlng(lng, lat) {
+            var ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng))
+            ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0
+            ret += (20.0 * Math.sin(lng * PI) + 40.0 * Math.sin(lng / 3.0 * PI)) * 2.0 / 3.0
+            ret += (150.0 * Math.sin(lng / 12.0 * PI) + 300.0 * Math.sin(lng / 30.0 * PI)) * 2.0 / 3.0
+            return ret
+        }
+
+        /**
+         * 判断是否在国内，不在国内则不做偏移
+         * @param {*} lng 
+         * @param {*} lat 
+         */
+        function outOfChina(lng, lat) {
+            return (lng < 72.004 || lng > 137.8347) || ((lat < 0.8293 || lat > 55.8271) || false)
+        }
+        var arr = farmData.全部
+        var searcher = []
+        var jsonArr = []
+        init()
+
+        function init() {
+            var map = new BMapGL.Map("allmap");    // 创建Map实例
+            map.centerAndZoom(new BMapGL.Point(116.64519309997558, 34.99175369350488), 12);  // 初始化地图,设置中心点坐标和地图级别
+            map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+            map.clearOverlays();
+            for (let i = 0; i < arr.length; i++) {
+                const point = new BMapGL.Point(wgs84tobd09(Number(arr[i].lng), Number(arr[i].lat))[0],wgs84tobd09(Number(arr[i].lng), Number(arr[i].lat))[1])
+                const marker = new BMapGL.Marker(point)
+                const opts = {
+                    width: 300,     // 信息窗口宽度
+                    height: 130,     // 信息窗口高度
+                    title: arr[i].name, // 信息窗口标题
+                }
+                const sContent = `<p style='margin:0;line-height:1.5;font-size:13px;margin-bottom:10px;margin-top:5px'>
+                        法定代表人：${arr[i].user}
+                    </p><p style='margin:0;line-height:1.5;font-size:13px;margin-bottom:10px'>
+                        联系电话：${arr[i].mobile}
+                    </p><p style='margin:0;line-height:1.5;font-size:13px;margin-bottom:10px'>
+                        经营许可证号：${arr[i].number}
+                    </p><p style='margin:0;line-height:1.5;font-size:13px;'>
+                        营业场所地址：${arr[i].address}
+                    </p></div>`;
+                const infoWindow = new BMapGL.InfoWindow(sContent, opts)
+                map.addOverlay(marker);
+                marker.addEventListener("click", function (e) {
+                    console.log(e)
+                    map.openInfoWindow(infoWindow, point); //开启信息窗口
+                });
+            }
+            $('.btn').click(function () {
+                if ($('.select').val().length == 0) {
+                    jsonArr = farmData.全部
+                } else {
+                    var key = $('.select').val()
+                    jsonArr = farmData[key]
+                }
+                var name = $('.input').val().replace(/\s+/g, "");
+                if (name.length > 0) {
+                    var resultArray = getArrayByName(name, jsonArr, 259);
+                    if (resultArray.length < 1) {
+                        layer.msg('请完善搜索信息～')
+                        return false
+                    } else {
+                        var arrNew = []
+                        for (var i = 0; i < resultArray.length; i++) {
+                            arrNew.push(resultArray[i])
+                        }
+                        searcher = arrNew
+                    }
+
+                    if (searcher.length == 0) {
+                        arr = farmData.全部
+                    } else {
+                        arr = searcher
+                    }
+                } else {
+                    arr = jsonArr
+                }
+                map.clearOverlays();
+                for (let i = 0; i < arr.length; i++) {
+                    const point = new BMapGL.Point(wgs84tobd09(Number(arr[i].lng), Number(arr[i].lat))[0],wgs84tobd09(Number(arr[i].lng), Number(arr[i].lat))[1])
+                    const marker = new BMapGL.Marker(point)
+                    const opts = {
+                        width: 300,     // 信息窗口宽度
+                        height: 130,     // 信息窗口高度
+                        title: arr[i].name, // 信息窗口标题
+                    }
+                    const sContent = `<p style='margin:0;line-height:1.5;font-size:13px;margin-bottom:10px;margin-top:5px'>
+                        法定代表人：${arr[i].user}
+                    </p><p style='margin:0;line-height:1.5;font-size:13px;margin-bottom:10px'>
+                        联系电话：${arr[i].mobile}
+                    </p><p style='margin:0;line-height:1.5;font-size:13px;margin-bottom:10px'>
+                        经营许可证号：${arr[i].number}
+                    </p><p style='margin:0;line-height:1.5;font-size:13px;'>
+                        营业场所地址：${arr[i].address}
+                    </p></div>`;
+                    const infoWindow = new BMapGL.InfoWindow(sContent, opts)
+                    map.addOverlay(marker);
+                    marker.addEventListener("click", function (e) {
+                        console.log(e)
+                        map.openInfoWindow(infoWindow, point); //开启信息窗口
+                    });
+                }
+            })
+        }
+        $('.select').click(function () {
+            $(this).next("ul").show();
+        })
+        $('#allmap').click(function () {
+            $("ul").hide();
+        })
+        $(function () {
+            /**按下键盘时搜索*/
+            $("body").undelegate(".input", "keyup").delegate(".input", "keyup", function () {
+                if ($('.select').val().length == 0) {
+                    jsonArr = farmData.全部
+                } else {
+                    jsonArr = farmData[$('.select').val()]
+                }
+                var name = $(this).val().replace(/\s+/g, "");
+                if (name.length > 0) {
+                    var resultArray = getArrayByName(name, jsonArr, 259);
+                    if (resultArray.length < 1) {
+                        $(this).next("ul").hide();
+                    } else {
+                        var arrNew = []
+                        var html = ''
+                        for (var i = 0; i < resultArray.length; i++) {
+                            // arrNew.push(resultArray[i])
+                            html += "<li>" + resultArray[i].name + "</li>";
+                        }
+                        // searcher = arrNew
+                        $(this).next("ul").html(html).show();
+                    }
+                }
+            })
+            /**下拉列表展开时点击li的事件,为输入框赋值*/
+            $(".input-search").on("click", "ul li", function () {
+                $(this).parent("ul").siblings("input").val($(this).text());
+                $(this).parent("ul").hide();
+            });
+        })
+
+
+        /**
+         * 根据字符串模糊搜索返回符合条件的数据
+         * name   搜索字符串
+         * array  检索json数组
+         * length 匹配结果最大长度
+         */
+        function getArrayByName(name, array, length) {
+            if (array.length < 1) {
+                return;
+            }
+            var result = [];
+            for (var key in array) {
+                if (checkStrContain(array[key].name, name) && result.length < length) {
+                    result.push(array[key])
+                }
+            }
+            return result
+        }
+        /**检查一个字符串是否包含在另一个字符串里,并且首字符相同
+         * 返回true
+         * */
+        function checkStrContain(i, j) {
+            if (!i || !j) {
+                return false;
+            }
+            if (i.charAt(0) != j.charAt(0)) {
+                return false;
+            }
+            i = i.substr(1, i.length - 1);
+            j = j.substr(1, j.length - 1);
+            var aa;
+            var b;
+            if (i.length > j.length) {
+                aa = i;
+                b = j;
+            } else {
+                aa = j;
+                b = i;
+            }
+            var count = 0;
+            for (var bi = 0; bi < b.length; bi++) {
+                var bArr = b.split("");
+                if (aa.indexOf(bArr[bi]) != -1) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (b.length == count) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    </script>
+</body>
+
+</html>
